@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Link - 夏以昼专属通讯</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #0b0c10; display: flex; justify-content: center; align-items: center; height: 100vh; color: #fff; overflow: hidden; }
+        
+        /* 模拟手机外壳 (适配手机全屏或桌面预览) */
+        .phone-case {
+            width: 100%;
+            max-width: 410px;
+            height: 100%;
+            max-height: 840px;
+            background: #12131c;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        @media(min-width: 450px) {
+            .phone-case {
+                border-radius: 40px;
+                border: 10px solid #24273a;
+                box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+                height: 800px;
+            }
+        }
+
+        /* 手机状态栏 */
+        .status-bar {
+            height: 38px;
+            background: rgba(18, 19, 28, 0.95);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 12px;
+            color: #787c99;
+            z-index: 100;
+        }
+
+        /* 屏幕内容区 */
+        .screen-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            background: #16161e;
+        }
+
+        .page {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            overflow-y: auto;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #16161e;
+        }
+        .page.active {
+            display: flex;
+        }
+
+        /* 1. 桌面样式 */
+        .desktop {
+            padding: 30px 20px;
+            align-items: center;
+            background: linear-gradient(135deg, #16161e 0%, #1f2335 100%);
+        }
+        .clock-widget { font-size: 52px; font-weight: 200; margin-top: 30px; letter-spacing: 2px; color: #c0caf5; }
+        .date-widget { font-size: 14px; color: #7aa2f7; margin-bottom: 40px; }
+        
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            width: 100%;
+        }
+        .app-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+        .icon-bg {
+            width: 55px;
+            height: 55px;
+            border-radius: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            transition: transform 0.1s;
+        }
+        .app-icon:active .icon-bg { transform: scale(0.92); }
+        .app-icon span { font-size: 11px; margin-top: 6px; color: #a9b1d6; text-align: center; }
+
+        /* 2. 聊天页面 */
+        .chat-header {
+            padding: 12px 15px;
+            background: #1f2335;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #292e42;
+            z-index: 10;
+        }
+        .back-btn { background: none; border: none; color: #7aa2f7; font-size: 14px; cursor: pointer; margin-right: 12px; }
+        .chat-title { font-size: 15px; font-weight: 600; color: #c0caf5; }
+        .chat-sub { font-size: 10px; color: #7aa2f7; }
+
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: #16161e;
+        }
+        .message {
+            max-width: 78%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 13.5px;
+            line-height: 1.4;
+        }
+        .message.incoming { background: #24283b; color: #c0caf5; align-self: flex-start; border-top-left-radius: 2px; }
+        .message.outgoing { background: #3d59a1; color: #fff; align-self: flex-end; border-top-right-radius: 2px; }
+
+        .chat-input-bar {
+            padding: 10px 15px;
+            background: #1f2335;
+            display: flex;
+            gap: 8px;
+            border-top: 1px solid #292e42;
+        }
+        .chat-input-bar input {
+            flex: 1;
+            background: #16161e;
+            border: 1px solid #292e42;
+            border-radius: 20px;
+            padding: 8px 14px;
+            color: #fff;
+            outline: none;
+            font-size: 13px;
+        }
+        .chat-input-bar button {
+            background: #7aa2f7; color: #1a1b26; border: none; border-radius: 20px; padding: 0 14px; font-weight: 600; font-size: 13px; cursor: pointer;
+        }
+
+        /* 3. 动态圈页面 */
+        .moments-header { padding: 15px; background: #1f2335; font-size: 16px; font-weight: 600; border-bottom: 1px solid #292e42; text-align: center; }
+        .moment-card { background: #1f2335; margin: 12px; border-radius: 12px; padding: 15px; border: 1px solid #292e42; }
+        .moment-author { font-weight: 600; color: #7aa2f7; font-size: 14px; margin-bottom: 6px; }
+        .moment-text { font-size: 13.5px; color: #c0caf5; margin-bottom: 10px; line-height: 1.4; }
+        .moment-footer { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #565f89; }
+        .like-btn { background: none; border: none; color: #f7768e; cursor: pointer; font-size: 13px; }
+
+        /* 底部 Dock 导航栏 */
+        .nav-bar {
+            height: 55px;
+            background: rgba(18, 19, 28, 0.95);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid #292e42;
+            z-index: 100;
+        }
+        .nav-item {
+            background: none; border: none; color: #565f89; font-size: 11px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px;
+        }
+        .nav-item.active { color: #7aa2f7; }
+        .nav-icon { font-size: 18px; }
+    </style>
+</head>
+<body>
+
+<div class="phone-case">
+    <!-- 状态栏 -->
+    <div class="status-bar">
+        <span id="currentTime">23:50</span>
+        <span>5G 🔋 98%</span>
+    </div>
+
+    <!-- 屏幕主体内容 -->
+    <div class="screen-content">
+        
+        <!-- 桌面页 -->
+        <div id="page-desktop" class="page active desktop">
+            <div class="clock-widget" id="clockLarge">23:50</div>
+            <div class="date-widget">10月2日 星期五 · 天行市</div>
+            
+            <div class="app-grid">
+                <div class="app-icon" onclick="switchPage('chat')">
+                    <div class="icon-bg" style="background: linear-gradient(135deg, #7aa2f7, #3d59a1);">💬</div>
+                    <span>传讯</span>
+                </div>
+                <div class="app-icon" onclick="switchPage('moments')">
+                    <div class="icon-bg" style="background: linear-gradient(135deg, #bb9af7, #7dcfff);">✨</div>
+                    <span>远空动态</span>
+                </div>
+                <div class="app-icon" onclick="alert('夏哥哥正在航天署厨房给你炖汤，稍后再来看看吧~')">
+                    <div class="icon-bg" style="background: linear-gradient(135deg, #9ece6a, #41a6b5);">🍱</div>
+                    <span>便当手记</span>
+                </div>
+                <div class="app-icon" onclick="alert('好感度：❤️ 99% \n执舰官状态：非常想见你。')">
+                    <div class="icon-bg" style="background: linear-gradient(135deg, #f7768e, #db4b4b);">❤️</div>
+                    <span>档案</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 聊天页 -->
+        <div id="page-chat" class="page">
+            <div class="chat-header">
+                <button class="back-btn" onclick="switchPage('desktop')">〈 桌面</button>
+                <div>
+                    <div class="chat-title">夏以昼</div>
+                    <div class="chat-sub">❤️ 好感度 99% · 正在执行任务</div>
+                </div>
+            </div>
+            
+            <div class="chat-messages" id="messageList">
+                <div class="message incoming">刚结束航天署的模拟飞行。今天那边天气不错，你在天行市乖乖吃饭了吗？</div>
+            </div>
+
+            <div class="chat-input-bar">
+                <input type="text" id="msgInput" placeholder="给夏哥哥发消息..." onkeypress="if(event.key==='Enter') sendMsg()">
+                <button onclick="sendMsg()">发送</button>
+            </div>
+        </div>
+
+        <!-- 动态圈页 -->
+        <div id="page-moments" class="page" style="background: #16161e;">
+            <div class="chat-header">
+                <button class="back-btn" onclick="switchPage('desktop')">〈 桌面</button>
+                <div class="chat-title" style="margin: 0 auto;">远空动态</div>
+                <div style="width: 30px;"></div>
+            </div>
+            
+            <div class="moment-card">
+                <div class="moment-author">夏以昼 ✨</div>
+                <div class="moment-text">今天实验室的咖啡豆刚好见底了，顺便在路口买了一份你喜欢吃的小甜点。任务结束就回去。</div>
+                <div class="moment-footer">
+                    <span>10分钟前 · 天行市航天署</span>
+                    <button class="like-btn" onclick="this.innerText = this.innerText.includes('❤️') ? '🤍 赞' : '❤️ 已赞'">❤️ 已赞</button>
+                </div>
+            </div>
+
+            <div class="moment-card">
+                <div class="moment-author">夏以昼 ✨</div>
+                <div class="moment-text">模拟飞行的星空很好看，但如果旁边有你，应该会更有意思一点。</div>
+                <div class="moment-footer">
+                    <span>昨天 21:45</span>
+                    <button class="like-btn" onclick="this.innerText = this.innerText.includes('❤️') ? '🤍 赞' : '❤️ 已赞'">❤️ 已赞</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 底部导航 Dock -->
+    <div class="nav-bar">
+        <button class="nav-item active" id="nav-desktop-btn" onclick="switchPage('desktop')">
+            <span class="nav-icon">🏠</span>
+            <span>桌面</span>
+        </button>
+        <button class="nav-item" id="nav-chat-btn" onclick="switchPage('chat')">
+            <span class="nav-icon">💬</span>
+            <span>传讯</span>
+        </button>
+        <button class="nav-item" id="nav-moments-btn" onclick="switchPage('moments')">
+            <span class="nav-icon">✨</span>
+            <span>动态</span>
+        </button>
+    </div>
+</div>
+
+<script>
+    function switchPage(pageName) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+        if(pageName === 'desktop') {
+            document.getElementById('page-desktop').classList.add('active');
+            document.getElementById('nav-desktop-btn').classList.add('active');
+        } else if(pageName === 'chat') {
+            document.getElementById('page-chat').classList.add('active');
+            document.getElementById('nav-chat-btn').classList.add('active');
+            scrollToBottom();
+        } else if(pageName === 'moments') {
+            document.getElementById('page-moments').classList.add('active');
+            document.getElementById('nav-moments-btn').classList.add('active');
+        }
+    }
+
+    function sendMsg() {
+        const input = document.getElementById('msgInput');
+        const text = input.value.trim();
+        if(!text) return;
+
+        const list = document.getElementById('messageList');
+        list.innerHTML += `<div class="message outgoing">${text}</div>`;
+        input.value = '';
+        scrollToBottom();
+
+        setTimeout(() => {
+            const replies = [
+                "收到！等我忙完这趟航行，回去给你带你想吃的那家甜品。",
+                "傻丫头，又在偷偷熬夜？早点休息，明天我来叫你。",
+                "引力再怎么变，我也会准确找到回你身边的那条航线。",
+                "好啦，听话。不准挑食，把晚饭好好吃了再跟我聊天。"
+            ];
+            const randomReply = replies[Math.floor(Math.random() * replies.length)];
+            list.innerHTML += `<div class="message incoming">${randomReply}</div>`;
+            scrollToBottom();
+        }, 1000);
+    }
+
+    function scrollToBottom() {
+        const list = document.getElementById('messageList');
+        list.scrollTop = list.scrollHeight;
+    }
+
+    // 动态更新时间
+    setInterval(() => {
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+        document.getElementById('currentTime').innerText = timeStr;
+        document.getElementById('clockLarge').innerText = timeStr;
+    }, 1000);
+</script>
+
+</body>
+</html>
