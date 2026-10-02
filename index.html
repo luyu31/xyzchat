@@ -73,3 +73,255 @@
         .app-icon-item span { font-size: 11px; margin-top: 6px; color: #736257; font-weight: 500; }
     </style>
 </head>
+<body>
+<div class="phone-case">
+    <!-- 状态栏与顶部来电悬浮窗 -->
+    <div class="status-bar">
+        <span id="currentTime">03:07</span>
+        <span>5G 🔋 98%</span>
+    </div>
+    <div class="call-island" id="callIsland" onclick="openCallModal()">
+        <span>📞 夏以昼 2:01</span>
+        <button class="hangup-btn" onclick="event.stopPropagation(); endCall()">✕</button>
+    </div>
+
+    <div class="screen-content">
+        <!-- 桌面页 -->
+        <div id="page-desktop" class="page active desktop">
+            <div class="desktop-header-card">
+                <div>
+                    <div class="desktop-title">两颗缠绕的心，会走向同一片星空</div>
+                    <div class="audio-wave">▶ 语音留言：今天便当带了...</div>
+                </div>
+                <div style="width: 40px; height: 40px; background: #dcd0c6; border-radius: 50%; display:flex; align-items:center; justify-content:center;">🐱</div>
+            </div>
+
+            <div class="widgets-row">
+                <div class="polaroid-widget">
+                    <div class="polaroid-img">🖼️</div>
+                    <div style="font-size: 10px; color: #8c7b70; margin-top: 6px;">夏以昼 & 我</div>
+                </div>
+                <div class="countdown-widget">
+                    <div style="font-size: 12px; color: #8c7b70;">❤️ 纪念日</div>
+                    <div class="countdown-num">7155</div>
+                    <div class="countdown-label">妹妹的生日</div>
+                </div>
+            </div>
+
+            <div style="background: #fff; border-radius: 16px; padding: 15px; box-shadow: 0 4px 15px rgba(140, 123, 112, 0.08);">
+                <div style="font-size: 13px; font-weight: 600; color: #5c4b41; margin-bottom: 8px;">💌 最新电子信</div>
+                <div id="latestLetterPreview" style="font-size: 12px; color: #8c7b70; line-height: 1.4;">点击下方“空间”或“设置”去写一封信，或者添加你自己的专属字卡与表情包吧！</div>
+            </div>
+
+            <div class="app-dock-grid">
+                <div class="app-icon-item" onclick="switchPage('chat')">
+                    <div class="app-icon-bg" style="background: #f0e6dd;">💬</div>
+                    <span>聊天</span>
+                </div>
+                <div class="app-icon-item" onclick="switchPage('space')">
+                    <div class="app-icon-bg" style="background: #ebdcd0;">✨</div>
+                    <span>空间</span>
+                </div>
+                <div class="app-icon-item" onclick="switchPage('letters')">
+                    <div class="app-icon-bg" style="background: #e3d2c5;">💌</div>
+                    <span>信件</span>
+                </div>
+                <div class="app-icon-item" onclick="switchPage('settings')">
+                    <div class="app-icon-bg" style="background: #dbc7b8;">⚙️</div>
+                    <span>设置</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 聊天页 -->
+        <div id="page-chat" class="page" style="background: #fbf8f5;">
+            <div style="padding: 12px 15px; background: #f0e6dd; display: flex; align-items: center; border-bottom: 1px solid #e3d2c5;">
+                <button onclick="switchPage('desktop')" style="background:none; border:none; color:#736257; font-size:14px; cursor:pointer; margin-right:10px;">〈 返回</button>
+                <div style="font-weight:600; font-size:14px; color:#5c4b41;">夏以昼 <span style="font-size:11px; color:#a69688; font-weight:normal;">(点击上方可模拟电话)</span></div>
+                <button onclick="triggerIncomingCall()" style="margin-left:auto; background:#d5cbc1; border:none; border-radius:12px; padding:4px 8px; font-size:11px; color:#5c4b41; cursor:pointer;">📞 叫我</button>
+            </div>
+            
+            <div id="chatMessages" style="flex:1; padding:15px; overflow-y:auto; display:flex; flex-direction:column; gap:12px;">
+                <div style="max-width:75%; padding:10px 14px; border-radius:14px; font-size:13px; background:#fff; color:#5c4b41; align-self:flex-start; box-shadow:0 2px 8px rgba(0,0,0,0.03);">刚结束航天署模拟飞行。今天便当有你最喜欢的红烧肉，乖乖等我回来。</div>
+            </div>
+
+            <!-- 表情与输入工具栏 -->
+            <div style="padding: 8px 12px; background:#f0e6dd; display:flex; gap:6px; align-items:center; border-top:1px solid #e3d2c5;">
+                <button onclick="sendEmoji('✨')" style="background:#fff; border:none; border-radius:8px; padding:6px; cursor:pointer;">✨</button>
+                <button onclick="sendEmoji('🧸')" style="background:#fff; border:none; border-radius:8px; padding:6px; cursor:pointer;">🧸</button>
+                <button onclick="sendEmoji('✈️')" style="background:#fff; border:none; border-radius:8px; padding:6px; cursor:pointer;">✈️</button>
+                <button onclick="sendEmoji('❤️')" style="background:#fff; border:none; border-radius:8px; padding:6px; cursor:pointer;">❤️</button>
+                <input type="text" id="chatInput" placeholder="发送消息或字卡..." style="flex:1; background:#fff; border:1px solid #d5cbc1; border-radius:16px; padding:6px 12px; font-size:13px; outline:none;" onkeypress="if(event.key==='Enter') sendChatMessage()">
+                <button onclick="sendChatMessage()" style="background:#b8865e; color:#fff; border:none; border-radius:16px; padding:6px 12px; font-size:12px; cursor:pointer;">发送</button>
+            </div>
+        </div>
+
+        <!-- 空间页 -->
+        <div id="page-space" class="page" style="background: #fbf8f5; padding: 15px;">
+            <div style="display:flex; align-items:center; margin-bottom:15px;">
+                <button onclick="switchPage('desktop')" style="background:none; border:none; color:#736257; font-size:14px; cursor:pointer;">〈 桌面</button>
+                <div style="font-weight:600; font-size:14px; color:#5c4b41; margin:0 auto;">夏哥哥的远空空间</div>
+            </div>
+            <div id="spaceCardsList" style="display:flex; flex-direction:column; gap:12px;">
+                <div style="background:#fff; padding:15px; border-radius:16px; box-shadow:0 4px 12px rgba(140,123,112,0.06);">
+                    <div style="font-weight:600; font-size:13px; color:#b8865e; margin-bottom:4px;">夏以昼 ✨</div>
+                    <div style="font-size:13px; color:#5c4b41; line-height:1.4;">今天测试的引力轨道很稳定，离带你去看星海的目标又近了一步。</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 电子信件页 -->
+        <div id="page-letters" class="page" style="background: #fbf8f5; padding: 15px;">
+            <div style="display:flex; align-items:center; margin-bottom:15px;">
+                <button onclick="switchPage('desktop')" style="background:none; border:none; color:#736257; font-size:14px; cursor:pointer;">〈 桌面</button>
+                <div style="font-weight:600; font-size:14px; color:#5c4b41; margin:0 auto;">电子信箱</div>
+            </div>
+            <div style="background:#fff; padding:15px; border-radius:16px; margin-bottom:15px; box-shadow:0 4px 12px rgba(140,123,112,0.06);">
+                <div style="font-size:13px; font-weight:600; color:#5c4b41; margin-bottom:8px;">写一封新信</div>
+                <textarea id="letterInput" placeholder="写下你想对夏以昼说的话或电子信内容..." style="width:100%; height:80px; border:1px solid #d5cbc1; border-radius:10px; padding:8px; font-size:12px; outline:none; resize:none;"></textarea>
+                <button onclick="saveLetter()" style="margin-top:8px; background:#b8865e; color:#fff; border:none; border-radius:12px; padding:6px 14px; font-size:12px; cursor:pointer;">封好并发送</button>
+            </div>
+            <div id="letterList" style="display:flex; flex-direction:column; gap:10px;"></div>
+        </div>
+
+        <!-- 设置页 -->
+        <div id="page-settings" class="page" style="background: #fbf8f5; padding: 15px;">
+            <div style="display:flex; align-items:center; margin-bottom:15px;">
+                <button onclick="switchPage('desktop')" style="background:none; border:none; color:#736257; font-size:14px; cursor:pointer;">〈 桌面</button>
+                <div style="font-weight:600; font-size:14px; color:#5c4b41; margin:0 auto;">自定义内容管理</div>
+            </div>
+            <div style="background:#fff; padding:15px; border-radius:16px; box-shadow:0 4px 12px rgba(140,123,112,0.06); display:flex; flex-direction:column; gap:12px;">
+                <div style="font-weight:600; font-size:13px; color:#5c4b41;">➕ 添加新的夏哥哥自动回复 / 字卡</div>
+                <input type="text" id="newReplyInput" placeholder="输入你想让他回复的新台词..." style="border:1px solid #d5cbc1; border-radius:10px; padding:8px; font-size:12px; outline:none;">
+                <button onclick="addNewReply()" style="background:#b8865e; color:#fff; border:none; border-radius:12px; padding:6px; font-size:12px; cursor:pointer;">保存到语录库</button>
+                
+                <div style="font-weight:600; font-size:13px; color:#5c4b41; margin-top:10px;">➕ 添加空间/动态卡片</div>
+                <input type="text" id="newSpaceTitle" placeholder="动态标题/角色名" style="border:1px solid #d5cbc1; border-radius:10px; padding:8px; font-size:12px; outline:none;">
+                <textarea id="newSpaceContent" placeholder="动态正文内容..." style="border:1px solid #d5cbc1; border-radius:10px; padding:8px; font-size:12px; outline:none; resize:none; height:60px;"></textarea>
+                <button onclick="addNewSpaceCard()" style="background:#b8865e; color:#fff; border:none; border-radius:12px; padding:6px; font-size:12px; cursor:pointer;">发布新动态</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let customReplies = JSON.parse(localStorage.getItem('xiayizhou_replies')) || [
+        "收到！等我忙完这趟航行，回去给你带你想吃的那家甜品。",
+        "傻丫头，又在偷偷熬夜？早点休息，明天我来叫你。",
+        "引力再怎么变，我也会准确找到回你身边的那条航线。"
+    ];
+
+    let spacePosts = JSON.parse(localStorage.getItem('xiayizhou_space')) || [
+        {title: "夏以昼 ✨", content: "今天实验室的咖啡豆刚好见底了，顺便在路口买了一份你喜欢吃的小甜点。"}
+    ];
+
+    let letters = JSON.parse(localStorage.getItem('xiayizhou_letters')) || [];
+
+    function switchPage(pageName) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-' + pageName).classList.add('active');
+        if(pageName === 'space') renderSpace();
+        if(pageName === 'letters') renderLetters();
+    }
+
+    function sendChatMessage() {
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if(!text) return;
+        const list = document.getElementById('chatMessages');
+        list.innerHTML += `<div style="max-width:75%; padding:10px 14px; border-radius:14px; font-size:13px; background:#b8865e; color:#fff; align-self:flex-end; box-shadow:0 2px 8px rgba(0,0,0,0.03);">${text}</div>`;
+        input.value = '';
+        list.scrollTop = list.scrollHeight;
+
+        setTimeout(() => {
+            const reply = customReplies[Math.floor(Math.random() * customReplies.length)];
+            list.innerHTML += `<div style="max-width:75%; padding:10px 14px; border-radius:14px; font-size:13px; background:#fff; color:#5c4b41; align-self:flex-start; box-shadow:0 2px 8px rgba(0,0,0,0.03);">${reply}</div>`;
+            list.scrollTop = list.scrollHeight;
+        }, 1000);
+    }
+
+    function sendEmoji(emoji) {
+        const list = document.getElementById('chatMessages');
+        list.innerHTML += `<div style="max-width:75%; padding:10px 14px; border-radius:14px; font-size:18px; background:#b8865e; color:#fff; align-self:flex-end;">${emoji}</div>`;
+        list.scrollTop = list.scrollHeight;
+        setTimeout(() => {
+            list.innerHTML += `<div style="max-width:75%; padding:10px 14px; border-radius:14px; font-size:18px; background:#fff; color:#5c4b41; align-self:flex-start;">摸摸头~ 收到你的表情啦 ✨</div>`;
+            list.scrollTop = list.scrollHeight;
+        }, 1000);
+    }
+
+    function triggerIncomingCall() {
+        document.getElementById('callIsland').style.display = 'flex';
+        alert("【模拟来电】夏以昼正在呼叫你...");
+    }
+
+    function endCall() {
+        document.getElementById('callIsland').style.display = 'none';
+        alert("通话已挂断");
+    }
+
+    function openCallModal() {
+        alert("正在通话中... 点击悬浮窗上的红色小叉号可以随时挂断电话哦！");
+    }
+
+    function addNewReply() {
+        const val = document.getElementById('newReplyInput').value.trim();
+        if(!val) return;
+        customReplies.push(val);
+        localStorage.setItem('xiayizhou_replies', JSON.stringify(customReplies));
+        document.getElementById('newReplyInput').value = '';
+        alert("成功添加新字卡/台词！");
+    }
+
+    function addNewSpaceCard() {
+        const title = document.getElementById('newSpaceTitle').value.trim();
+        const content = document.getElementById('newSpaceContent').value.trim();
+        if(!content) return;
+        spacePosts.unshift({title: title || "夏以昼 ✨", content: content});
+        localStorage.setItem('xiayizhou_space', JSON.stringify(spacePosts));
+        document.getElementById('newSpaceTitle').value = '';
+        document.getElementById('newSpaceContent').value = '';
+        alert("新动态发布成功！");
+    }
+
+    function saveLetter() {
+        const content = document.getElementById('letterInput').value.trim();
+        if(!content) return;
+        letters.unshift({date: new Date().toLocaleDateString(), content: content});
+        localStorage.setItem('xiayizhou_letters', JSON.stringify(letters));
+        document.getElementById('letterInput').value = '';
+        renderLetters();
+        alert("电子信已成功寄出！");
+    }
+
+    function renderLetters() {
+        const container = document.getElementById('letterList');
+        container.innerHTML = letters.map(l => `
+            <div style="background:#fff; padding:12px; border-radius:12px; font-size:12px; color:#5c4b41; box-shadow:0 2px 8px rgba(140,123,112,0.05);">
+                <div style="color:#b8865e; font-weight:600; margin-bottom:4px;">寄出日期：${l.date}</div>
+                <div>${l.content}</div>
+            </div>
+        `).join('');
+        if(letters.length > 0) {
+            document.getElementById('latestLetterPreview').innerText = letters[0].content;
+        }
+    }
+
+    function renderSpace() {
+        const container = document.getElementById('spaceCardsList');
+        container.innerHTML = spacePosts.map(p => `
+            <div style="background:#fff; padding:15px; border-radius:16px; box-shadow:0 4px 12px rgba(140,123,112,0.06);">
+                <div style="font-weight:600; font-size:13px; color:#b8865e; margin-bottom:4px;">${p.title}</div>
+                <div style="font-size:13px; color:#5c4b41; line-height:1.4;">${p.content}</div>
+            </div>
+        `).join('');
+    }
+
+    setInterval(() => {
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+        document.getElementById('currentTime').innerText = timeStr;
+    }, 1000);
+</script>
+</body>
+</html>
